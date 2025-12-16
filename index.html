@@ -292,7 +292,7 @@
                 <div class="text-center">
                     <p class="text-sm text-gray-600 font-semibold">Σ Nilai Tidak Terpenuhi:</p>
                     <p id="total-score-value" class="text-xl font-bold text-red-600 mt-1">0</p>
-                    <p class="text-xs text-gray-500">Max: 507</p>
+                    <p class="text-xs text-gray-500">Max: 315</p>
                 </div>
                 <div class="text-center">
                     <p class="text-sm font-semibold text-kemenkes-blue">Skor IKL Akhir:</p>
@@ -306,63 +306,122 @@
     <script>
         // --- DATA KONSTAN FORMULIR LENGKAP ---
 
+        // PERHATIAN: Nilai-nilai di bawah ini telah disesuaikan dengan nilai-nilai yang tertera
+        // di file "Formulir IKL SPPG.pdf" yang diunggah.
+        // MAX_TOTAL_SCORE 315 dihitung dari total maksimum poin non-pemenuhan (NA dikecualikan).
+
         const CRITERIA = [
-            // Definisi Kriteria Inspeksi
+            // No. 1 - H:1
             { no: 1, text: "Halaman SPPG dalam kondisi bersih, tidak bersemak, dan tidak terdapat tanaman yang menempel langsung pada dinding bangunan pengolahan pangan.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 2 - A:1
             { no: 2, text: "Area parkir kendaraan jauh dari pintu masuk bangunan pengolahan pangan untuk mencegah kontaminasi asap kendaraan masuk ke ruang pengolahan pangan.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 3 - A:1
             { no: 3, text: "Bangunan SPPG dilengkapi dengan drainase pada bagian luar dengan kondisi bersih, tidak tersumbat atau meluap, dan memiliki grease trap/penangkap lemak.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 4 - A:1
             { no: 4, text: "Pintu masuk bahan pangan dan produk jadi dibuat secara terpisah", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
-            { no: 5, text: "Area bebas banjir, jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang sedang ditangani", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
-            { no: 6, text: "Area bebas dari polusi (contoh: pencemaran bau/asap/debu), dan jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang ditangani.", areas: { A: 3, B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 5 - A:2, B-H:3
+            { no: 5, text: "Area bebas banjir, jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang sedang ditangani", areas: { A: 2, B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 6 - A:2, B:1, C-E:2, F-H:1
+            { no: 6, text: "Area bebas dari polusi (contoh: pencemaran bau/asap/debu), dan jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang ditangani.", areas: { A: 2, B: 1, C: 2, D: 2, E: 2, F: 1, G: 1, H: 1 } },
+            // No. 7 - A-H:1
             { no: 7, text: "Bangunan / area memiliki ventilasi udara yang cukup.", areas: { A: 1, B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 8a - H:1
             { no: '8a', text: "Tersedia ruang/area khusus untuk istirahat karyawan yang bersih dan bebas dari vektor atau binatang pembawa penyakit (semua siklus kehidupan) dan tanda-tanda keberadaannya.", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 8b - H:1
             { no: '8b', text: "Tersedia area penyimpanan pakaian dan barang pribadi karyawan (loker) yang bersih dan cukup (pria dan wanita).", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 8c - H:1
             { no: '8c', text: "Tempat penyimpanan (loker) dilengkapi dengan tata tertib penggunaan loker dan tidak digunakan sebagai tempat penyimpanan makanan dan peralatan pengolahan pangan", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 9a - H:1
             { no: '9a', text: "Jumlah toilet cukup sesuai jumlah karyawan dan dibuat terpisah antara laki-laki dan perempuan", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 9b - H:2
             { no: '9b', text: "Desain toilet kuat dengan permukaan halus dan mudah dibersihkan", areas: { A: 'NA', B: 2, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 9c - B-H:2
             { no: '9c', text: "Pintu atau ventilasi toilet tidak membuka langsung ke area pengolahan pangan", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            // No. 9d - F:3
             { no: '9d', text: "Toilet dilengkapi dengan sabun, air mengalir, alat pengering tangan, tempat sampah, dan petunjuk mencuci tangan setelah dari toilet.", areas: { A: 'NA', B: 3, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 10a - B-H:2
             { no: '10a', text: "Jumlah wastafel/fasilitas cuci tangan cukup sesuai dengan jumlah karyawan dan posisi tempat cuci tangan mudah dijangkau di area dimana banyak kontak tangan penjamah dengan pangan", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 2, G: 2, H: 2 } },
-            { no: '10b', text: "Desain wastafel/fasilitas cuci tangan kuat, mudah dibersihkan, dan dilengkapi dengan petunjuk cuci tangan", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
-            { no: '10c', text: "Wastafel/fasilitas cuci tangan dilengkapi dengan air mengalir, sabun cuci tangan, dan pengering tangan (bisa hand dryer atau tissue, tetapi tidak boleh kain serbet)", areas: { A: 'NA', B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 10b - B-H:1
+            { no: '10b', text: "Desain kuat, mudah dibersihkan, dan dilengkapi dengan petunjuk cuci tangan", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 10c - B-H:3
+            { no: '10c', text: "Dilengkapi dengan air mengalir, sabun cuci tangan, dan pengering tangan (bisa hand dryer atau tissue, tetapi tidak boleh kain serbet)", areas: { A: 'NA', B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 11 - A-H:1
             { no: 11, text: "Luas area cukup untuk memudahkan pergerakan bahan atau personil", areas: { A: 1, B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
-            { no: 12, text: "Struktur bangunan (dinding, plafon, atau atap) tidak ada lubang / retakan yang menjadi potensi masuknya atau bersarangnya vektor atau binatang pembawa penyakit.", areas: { A: 1, B: 2, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            // No. 12 - A,B,E,F,G:1, C,D,H:2
+            { no: 12, text: "Struktur bangunan (dinding, plafon, atau atap) tidak ada lubang / retakan yang menjadi potensi masuknya atau bersarangnya vektor atau binatang pembawa penyakit.", areas: { A: 1, B: 1, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            // No. 13a - B,C:2, D-H:1
             { no: '13a', text: "Lantai bersih dan terawat (tidak rusak atau tidak retak/berlubang)", areas: { A: 'NA', B: 2, C: 2, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 13b - A,C,D,E,H:2, B,F,G:1
             { no: '13b', text: "Tidak terdapat genangan air", areas: { A: 2, B: 1, C: 2, D: 2, E: 2, F: 1, G: 1, H: 2 } },
+            // No. 13c - B-H:1
             { no: '13c', text: "Pertemuan lantai dan dinding tidak membentuk sudut mati (jika tidak demikian, maka harus dilakukan pembersihan secara rutin dan tidak ditemukan bukti visual kumpulan debu/kotoran)", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 14 - B-H:1
             { no: 14, text: "Pintu dalam kondisi bersih dan terawat (tidak berlubang dan dapat menutup sempurna)", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 15 - B,F:1, C,D,E,G,H:2
             { no: 15, text: "Pencahayaan cukup terang dengan lampu tercover (jika lampu terbuat dari bahan mudah pecah) dan kondisi cover (jika ada) bersih dan terawat.", areas: { A: 'NA', B: 1, C: 2, D: 2, E: 2, F: 1, G: 2, H: 2 } },
-            { no: '16a', text: "Tinggi langit-langit minimal 2.4 meter dari lantai", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
-            { no: '16b', text: "Kondisi langit-langit tertutup, bersih dan terawat (contoh: tidak ada jamur, debu, kotoran, sarang hama atau sawang)", areas: { A: 2, B: 'NA', C: 2, D: 2, E: 2, F: 2, G: 1, H: 2 } },
-            { no: '16c', text: "Tidak ada kondensasi air pada langit-langit", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 1, G: 1, H: 1 } },
-            { no: '17a', text: "Tidak ada sampah berserakan di area tempat sampah dan limbah", areas: { A: 1, B: 2, C: 2, D: 2, E: 1, F: 1, G: 2, H: 2 } },
+            // No. 16a - B-H:1
+            { no: '16a', text: "Tinggi minimal 2.4 meter dari lantai", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            // No. 16b - A,C,D,E,F,H:2, G:1
+            { no: '16b', text: "Kondisi tertutup, bersih dan terawat (contoh: tidak ada jamur, debu, kotoran, sarang hama atau sawang)", areas: { A: 2, B: 'NA', C: 2, D: 2, E: 2, F: 2, G: 1, H: 2 } },
+            // No. 16c - B,C,D,E:2, F,G,H:1
+            { no: '16c', text: "Tidak ada kondensasi air", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 1, G: 1, H: 1 } },
+            // No. 17a - A,E,F:1, B,C,D,G,H:2
+            { no: '17a', text: "Tidak ada sampah berserakan", areas: { A: 1, B: 2, C: 2, D: 2, E: 1, F: 1, G: 2, H: 2 } },
+            // No. 17b - A,C,G:1, B,D,E,F,H:2
             { no: '17b', text: "Terdapat tempat sampah dalam kondisi tertutup, sampah tidak mengunung (frekuensi pembuangan minimal 1x24 jam) dan kondisi bersih", areas: { A: 1, B: 2, C: 1, D: 2, E: 2, F: 2, G: 1, H: 2 } },
+            // No. 18a - A,E:1, C,F:2, B,D,G,H:3
             { no: '18a', text: "Bebas vektor atau binatang pembawa penyakit (semua tingkat siklus kehidupannya) dan tanda-tanda keberadaannya (contoh: kotoran atau bagian tubuh hama)", areas: { A: 1, B: 3, C: 2, D: 3, E: 1, F: 2, G: 3, H: 3 } },
+            // No. 18b - B,E:1, A,C,D,F,G,H:2
             { no: '18b', text: "Terdapat jebakan hama yang ditempatkan pada posisi yang sesuai dan dalam kondisi terawat (tidak rusak, tidak berjamur, dan bersih).", areas: { A: 2, B: 1, C: 2, D: 2, E: 1, F: 2, G: 2, H: 2 } },
+            // No. 18c - B-G:3, H:1
             { no: '18c', text: "Pengendalian tidak mengunakan bahan kimia (pestisida) di area dalam bangunan pengolahan pangan", areas: { A: 'NA', B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 1 } },
+            // No. 18d - A,D:1, B,C,E,F,G,H:2
             { no: '18d', text: "JIKA ventilasi berupa bukaan (contoh: jendela/exhaust) yang terbuka keluar, maka terdapat kasa/tirai/plastik curtain anti serangga untuk mencegah masuknya vektor atau binatang pembawa penyakit. Kasa/tirai/plastik curtain dalam kondisi bersih dan terawat.", areas: { A: 1, B: 2, C: 2, D: 1, E: 2, F: 2, G: 2, H: 2 } },
+            // No. 19a - C-G:1
             { no: '19a', text: "Penyimpanan bahan baku, ingredien dan kemasan tidak langsung menyentuh lantai (contoh: menggunakan palet) dengan jarak minimal 15 cm dari lantai, 5 cm dari dinding, dan 60 cm dari langit-langit", areas: { A: 'NA', B: 'NA', C: 1, D: 1, E: 1, F: 1, G: 1, H: 'NA' } },
+            // No. 19b - A,E,F:2
             { no: '19b', text: "Kemasan bekas bahan baku mentah tidak disimpan di area yang terdapat pangan matang", areas: { A: 2, B: 'NA', C: 'NA', D: 'NA', E: 2, F: 2, G: 'NA', H: 'NA' } },
-            { no: '19c', text: "Penyimpanan bahan mentah tidak menyatu dengan pangan matang, dan penyimpanan bahan pangan tidak menyatu dengan penyimpanan bahan kimia.", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            // No. 19c - C-G:3
+            { no: '19c', text: "Penyimpanan bahan mentah tidak menyatu dengan pangan matang (contoh di ruang penyimpanan, chiller atau freezer), dan penyimpanan bahan pangan (mentah atau matang) tidak menyatu dengan penyimpanan bahan kimia.", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            // No. 19d - C-G:3
             { no: '19d', text: "Bahan baku pangan dan ingredient dalam kondisi baik dan tidak busuk atau berlendir", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            // No. 19e - B,D,E,F,G:3
             { no: '19e', text: "Khusus untuk bahan baku olahan terkemas dalam kondisi baik (tidak kedaluwarsa, kemasan utuh/tidak bocor, dan memiliki izin edar dari instansi terkait)", areas: { A: 'NA', B: 3, C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
-            { no: '19f', text: "Khusus untuk chiller atau freezer, suhu penyimpanan harus sesuai (chiller 0-4°C dan freezer ≤(-15°C))", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 2, H: 'NA' } },
-            { no: '19g', text: "Bahan kimia (contoh untuk cuci tangan/sanitasi tangan, cuci peralatan, pembersihan lantai) disimpan pada area khusus dengan akses terbatas dan memiliki identitas yang jelas. Kuantitas bahan kimia yang digunakan di setiap area hanya untuk penggunaan harian", areas: { A: 2, B: 2, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            // No. 19f - G:2
+            { no: '19f', text: "Khusus untuk chiller atau freezer yang digunakan untuk menyimpan bahan pangan, ingredien, atau pangan siap saji, maka suhu penyimpanan harus sesuai (chiller 0-4°C dan freezer ≤(-15°C))", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 2, H: 'NA' } },
+            // No. 19g - A-D,H:2, E,F,G:1
+            { no: '19g', text: "Bahan kimia (contoh untuk cuci tangan/sanitasi tangan, cuci peralatan, pembersihan lantai) disimpan pada area khusus dengan akses terbatas dan memiliki identitas yang jelas. Kuantitas bahan kimia yang digunakan di setiap area hanya untuk penggunaan harian (tidak dalam kemasan galon/bulk)", areas: { A: 2, B: 2, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            // No. 19h - G:3
             { no: '19h', text: "Tidak ada pangan matang yang disimpan sementara di area luar bangunan pengolahan dalam kondisi terbuka.", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 3, H: 'NA' } },
-            { no: '19i', text: "Penyimpanan kemasan yang kontak pangan matang dalam kondisi bersih", areas: { A: 'NA', B: 'NA', C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 19i - C-H:3
+            { no: '19i', text: "Penyimpanan kemasan yang kontak pangan matang dalam kondisi bersih", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 20a - B,D,E,G,H:3, F:1
             { no: '20a', text: "Personil sehat/tidak menunjukkan gejala penyakit", areas: { A: 'NA', B: 3, C: 'NA', D: 3, E: 3, F: 1, G: 3, H: 3 } },
+            // No. 20b - D-H:2
             { no: '20b', text: "Personil menggunakan APD (celemek, masker, hairnet/penutup rambut) dengan lengkap dan benar", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            // No. 20c - C,E,F,G,H:2
             { no: '20c', text: "Personil menggunakan pakaian kerja khusus selama berada di area pengolahan pangan", areas: { A: 'NA', B: 'NA', C: 2, D: 'NA', E: 2, F: 2, G: 2, H: 2 } },
+            // No. 20d - B,E,F,G:3, H:2
             { no: '20d', text: "Personil menerapkan personil higiene dengan benar (contoh: tidak memakai aksesoris/perhiasan, rutin mencuci tangan, tidak batuk/bersin langsung di atas pangan, tidak merokok/makan/minum saat mengolah pangan, tidak mengaruk atau menyentuh bagian badan dan kemudian menyentuh pangan)", areas: { A: 'NA', B: 3, C: 'NA', D: 'NA', E: 3, F: 3, G: 3, H: 2 } },
+            // No. 20e - D-H:3
             { no: '20e', text: "Jika personil memiliki luka, maka luka harus ditutup dengan perban/sejenisnya dan ditutup penutup yang tahan air dan dalam kondisi bersih", areas: { A: 'NA', B: 'NA', C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            // No. 20f - D-H:2
             { no: '20f', text: "Personil yang bekerja di area ini memiliki pemahaman mengenai prinsip umum higiene personil dan keamanan pangan", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 2, F: 2, G: 2, H: 2 } },
-            { no: '21a', text: "Peralatan atau kemasan yang kontak langsung dengan pangan dibuat dari bahan tara pangan, tidak terbuat dari kayu, dan kondisi terawat (tidak rusak, tidak berkarat, dan bersih)", areas: { A: 'NA', B: 'NA', C: 3, D: 1, E: 2, F: 3, G: 3, H: 'NA' } },
+            // No. 21a - C,F,G:3, D:1, E:2
+            { no: '21a', text: "Dibuat dari bahan tara pangan (kedap air, tahan karat, tidak mentransfer zat berbahaya) dan kondisi terawat (tidak rusak, tidak berkarat, dan bersih)", areas: { A: 'NA', B: 'NA', C: 3, D: 1, E: 2, F: 3, G: 3, H: 'NA' } },
+            // No. 21b - C,D,G:3, E:2, F,H:1
             { no: '21b', text: "Peralatan dalam kondisi terawat (tidak rusak/pecah, tidak berkarat, dan bersih)", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 2, F: 1, G: 3, H: 1 } },
+            // No. 21c - F:3
             { no: '21c', text: "Khusus untuk kemasan pangan matang dalam kondisi bersih dan terawat (tidak rusak/pecah, tidak berkarat, dan bersih (tidak terdapat sisa bahan kimia pencucian atau sisa makanan), serta dapat ditutup sempurna)", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 3, G: 'NA', H: 'NA' } },
-            { no: '22a', text: "Jika terdapat proses thawing/pencairan bahan pangan, maka dilakukan dengan benar.", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 22a - E:2
+            { no: '22a', text: "Jika terdapat proses thawing/pencairan bahan pangan, maka dilakukan dengan benar.", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 2, F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 22b - E:3
             { no: '22b', text: "Pangan dimasak sampai matang sempurna dengan penampakan visual normal (tidak ada benda asing) dan bau normal", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 3, F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 22c - E:3
             { no: '22c', text: "Suhu inti pangan yang dimasak minimal 75°C (lakukan sampling pada saat inspeksi dan ukur menggunakan termometer)", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 3, F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 23a - A:2
             { no: '23a', text: "Kondisi kendaraan pengangkutan pangan matang bersih, terawat dan bebas dari vektor atau binatang pembawa penyakit.", areas: { A: 2, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            // No. 23b - A:3
             { no: '23b', text: "Pangan yang diangkut dalam kondisi kemasan tertutup sempurna dan pengangkutan sesuai untuk menjaga suhu panas atau dingin (sesuai jenis pangan)", areas: { A: 3, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
         ];
 
@@ -391,7 +450,8 @@
             { no: '9.d', text: "Rekaman pembersihan fasilitas (contoh: wastafel, toilet, area kerja) tersedia" },
         ];
         
-        const MAX_TOTAL_SCORE = 507; // Nilai maksimum total bobot persyaratan
+        // Max Score dihitung ulang dari data kriteria di atas (Total sum of non-'NA' values)
+        const MAX_TOTAL_SCORE = 315; 
         const STORAGE_KEY = 'iklSppgFormData';
 
         // --- FUNGSI UTAMA ---
@@ -409,15 +469,34 @@
             
             // 2. Konfigurasi html2pdf
             const opt = {
-                margin: 0.5,
+                // MENGECILKAN MARGIN (dari 0.5 ke 0.3)
+                margin: 0.3, 
                 filename: filename,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true },
+                // MENGECILKAN SKALA FONT/KONTEN (dari 2 ke 1.5)
+                html2canvas: { scale: 1.5, logging: false, dpi: 192, letterRendering: true }, 
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
 
             // Cloning elemen untuk menghilangkan fitur interaktif 
             const clonedElement = element.cloneNode(true);
+
+            // Menambahkan style untuk mengecilkan jarak antar baris di PDF
+            const style = document.createElement('style');
+            style.textContent = `
+                .pdf-text {
+                    line-height: 1.1; /* Mengurangi spasi baris */
+                    padding-top: 2px !important;
+                    padding-bottom: 2px !important;
+                }
+                .pdf-text-small {
+                    line-height: 1.05; /* Lebih kecil lagi untuk tabel */
+                }
+                .pdf-heading {
+                    line-height: 1.2;
+                }
+            `;
+            clonedElement.appendChild(style);
             
             // Fungsi helper untuk mendapatkan label yang terpilih dari radio group
             const getSelectedLabelText = (inputName, clonedDoc) => {
@@ -436,7 +515,8 @@
                 }
                 
                 const span = document.createElement('span');
-                span.className = 'font-normal text-sm text-gray-800 block border-b border-gray-300 px-1';
+                // Mengecilkan font untuk output PDF & Menambahkan kelas line-height
+                span.className = 'font-normal text-xs text-gray-800 block border-b border-gray-300 px-1 pdf-text'; 
                 span.textContent = input.value || '—';
                 
                 input.parentNode.replaceChild(span, input);
@@ -451,7 +531,8 @@
                         const selectedValue = getSelectedLabelText(inputName, clonedElement);
                         const staticSpan = document.createElement('span');
                         staticSpan.textContent = selectedValue;
-                        staticSpan.className = 'text-sm font-bold block py-1';
+                        // Mengecilkan font & Menambahkan kelas line-height
+                        staticSpan.className = 'text-xs font-bold block py-1 pdf-text-small';
                         
                         const radioDiv = cell.querySelector('div.flex.flex-col');
                         if(radioDiv) {
@@ -461,24 +542,66 @@
                         cell.appendChild(staticSpan);
                     }
                 });
+                
+                // Mengubah ukuran font dan line-height pada teks kriteria di baris tabel
+                const textCell = row.querySelector('td:nth-child(2)');
+                if (textCell) {
+                    textCell.classList.remove('text-sm');
+                    textCell.classList.add('text-xs', 'pdf-text-small');
+                    textCell.style.lineHeight = '1.05'; 
+                }
+            });
+            
+            // Mengubah ukuran font pada header tabel
+            clonedElement.querySelectorAll('thead th.text-xs').forEach(th => {
+                th.classList.remove('text-xs');
+                th.classList.add('text-[10px]'); // Sedikit lebih kecil dari xs
             });
 
             // Mengganti grup radio dengan nilai teks statis untuk Persyaratan Khusus
-            clonedElement.querySelectorAll('#special-requirements .flex').forEach(div => {
+            clonedElement.querySelectorAll('#special-requirements > div').forEach(div => {
                 const inputName = div.querySelector('input[type="radio"]') ? div.querySelector('input[type="radio"]').name : null;
+                
+                // Mengaplikasikan kelas line-height pada div container
+                div.classList.add('pdf-text');
+
                 if (inputName) {
                     const resultDiv = div.querySelector('.flex-shrink-0.flex.space-x-4');
                     if (resultDiv) {
                         const selectedValue = getSelectedLabelText(inputName, clonedElement);
                         const staticSpan = document.createElement('span');
                         staticSpan.textContent = selectedValue;
-                        staticSpan.className = 'text-sm font-bold';
+                        // Mengecilkan font & Menambahkan kelas line-height
+                        staticSpan.className = 'text-xs font-bold pdf-text';
                         
                         resultDiv.innerHTML = '';
                         resultDiv.appendChild(staticSpan);
                     }
                 }
+                
+                // Mengecilkan font pada teks persyaratan khusus
+                const textDiv = div.querySelector('.flex-grow');
+                if (textDiv) {
+                    textDiv.classList.remove('text-sm');
+                    textDiv.classList.add('text-xs', 'pdf-text');
+                }
+                const noDiv = div.querySelector('.flex-shrink-0.w-8');
+                if (noDiv) {
+                    noDiv.classList.remove('text-sm');
+                    noDiv.classList.add('text-xs');
+                }
             });
+            
+            // Mengecilkan font pada keterangan skor
+            clonedElement.querySelectorAll('section .text-sm').forEach(el => {
+                el.classList.remove('text-sm');
+                el.classList.add('text-xs', 'pdf-text');
+            });
+            clonedElement.querySelectorAll('section .text-base').forEach(el => {
+                el.classList.remove('text-base');
+                el.classList.add('text-sm', 'pdf-text');
+            });
+
 
             // Menampilkan skor akhir di dalam konten PDF
             const finalScoreElement = document.getElementById('final-ikl-score');
@@ -489,9 +612,9 @@
             scoreResultDiv.className = 'mt-6 p-4 rounded-lg border-2 border-dashed bg-gray-50';
             scoreResultDiv.style.borderColor = scoreColor;
             scoreResultDiv.innerHTML = `
-                <h4 class="text-xl font-bold text-gray-700">Hasil Akhir Inspeksi</h4>
-                <p class="text-lg font-semibold">Skor IKL Akhir: 
-                    <span style="color: ${scoreColor}; font-weight: bold; font-size: 1.5em;">${scoreValue}</span>
+                <h4 class="text-lg font-bold text-gray-700 pdf-heading">Hasil Akhir Inspeksi</h4>
+                <p class="text-sm font-semibold pdf-text">Skor IKL Akhir: 
+                    <span style="color: ${scoreColor}; font-weight: bold; font-size: 1.2em;">${scoreValue}</span>
                 </p>
             `;
             clonedElement.appendChild(scoreResultDiv);
@@ -623,6 +746,7 @@
 
             scores.forEach(input => {
                 const value = input.value;
+                // Pastikan input adalah angka, NA dihitung sebagai 0
                 if (!isNaN(parseInt(value, 10))) {
                     totalScore += parseInt(value, 10);
                 }
@@ -652,6 +776,14 @@
         }
 
         /**
+         * Memeriksa skor maksimum untuk area tertentu (1, 2, atau 3)
+         */
+        function getMaxScore(areaScore) {
+            if (areaScore === 'NA') return 0;
+            return parseInt(areaScore, 10);
+        }
+
+        /**
          * Membuat baris kriteria untuk tabel inspeksi dan menambahkan listener simpan.
          */
         function renderCriteriaTable() {
@@ -669,14 +801,21 @@
 
                 const areas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
                 areas.forEach(area => {
-                    const score = crit.areas[area];
+                    const maxScore = getMaxScore(crit.areas[area]); // Nilai max score untuk area ini (atau 0 jika NA)
                     const inputName = `crit-${crit.no}-${area}`;
                     
                     let cellContent;
-                    if (score === 'NA') {
+                    if (crit.areas[area] === 'NA') {
                         cellContent = `<span class="text-xs text-gray-400 font-semibold">NA</span>`;
                     } else {
-                        const radioButtons = [3, 2, 1, 'NA'].map(val => {
+                        // Tentukan opsi yang tersedia berdasarkan maxScore
+                        const scoreOptions = ['NA'];
+                        // MEMPERBAIKI KESALAHAN SINTAKS: menggunakan 'for' alih-alih 'untuk'
+                        for (let i = 1; i <= maxScore; i++) {
+                            scoreOptions.push(i);
+                        }
+                        
+                        const radioButtons = scoreOptions.map(val => {
                             const numericValue = val === 'NA' ? 0 : val;
                             // Pre-select NA (value=0) jika tidak ada data tersimpan
                             const defaultChecked = val === 'NA' ? 'checked' : ''; 
@@ -728,7 +867,7 @@
                             <span class="ml-2 text-sm text-gray-700">Ya</span>
                         </label>
                         <label class="inline-flex items-center cursor-pointer">
-                            <input type="radio" name="req-${req.no}" value="Tidak" class="form-radio text-red-600 h-5 w-5">
+                            <input type="radio" name="req-${req.no}" value="Tidak" class="form-radio text-red-600 h-5 w-5" checked>
                             <span class="ml-2 text-sm text-gray-700">Tidak</span>
                         </label>
                     </div>
