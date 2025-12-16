@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKL SPPG Interaktif - Kemenkes</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Konfigurasi Tailwind untuk font Inter dan warna kustom -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kemenkes-blue': '#1e40af',
+                        'kemenkes-light': '#ebf8ff',
+                        'score-green': '#10b981', /* Emerald for >= 80 */
+                        'score-red': '#ef4444', /* Red for < 80 */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Menggunakan font Inter secara default */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+
+        /* Styling untuk radio button / kotak skor */
+        .score-input:checked + .score-label {
+            background-color: #1e40af; /* Warna Biru Kemenkes */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+            border-color: #1e40af;
+        }
+
+        .score-label {
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            @apply border border-gray-300 w-full text-center py-1 rounded-lg text-sm font-semibold hover:bg-gray-100;
+        }
+
+        /* Hover effect pada baris kriteria */
+        .criteria-row:hover {
+            background-color: #e5f6ff; /* Background biru muda saat hover */
+        }
+        
+        /* Fixed header for table on top */
+        .fixed-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        /* Fixed score bar at the bottom */
+        #fixed-score-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden mb-24">
+        
+        <!-- Header Aplikasi -->
+        <header class="bg-kemenkes-blue p-6 text-white text-center">
+            <h1 class="text-3xl font-extrabold mb-1">INSTRUMEN INSPEKSI KESEHATAN LINGKUNGAN (IKL)</h1>
+            <h2 class="text-xl font-medium">SATUAN PELAYANAN PEMENUHAN GIZI (SPPG)</h2>
+        </header>
+
+        <main class="p-6 md:p-8">
+            <!-- Bagian A: Data Umum SPPG -->
+            <section class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">A. Data Umum SPPG</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="block">
+                        <span class="text-gray-700">a. Nama SPPG:</span>
+                        <input type="text" id="nama_sppg" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">b. Alamat:</span>
+                        <input type="text" id="alamat_sppg" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    
+                    <!-- Penambahan Bujur/Lintang Otomatis -->
+                    <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="block">
+                            <span class="text-gray-700">Lintang (Latitude):</span>
+                            <input type="text" id="latitude" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="-6.2088" readonly>
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-700">Bujur (Longitude):</span>
+                            <input type="text" id="longitude" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="106.8456" readonly>
+                        </label>
+                        <button id="get-location-btn" class="mt-6 md:mt-1 flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-md">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243m-1.414 6.364l7.071-7.071m-7.071 7.071l7.071-7.071m-4.243-4.243l4.243 4.243m-4.243-4.243l-4.243 4.243"></path></svg>
+                            Dapatkan Lokasi
+                        </button>
+                    </div>
+                    
+                    <label class="block">
+                        <span class="text-gray-700">c. Nama & Kontak Penanggung Jawab:</span>
+                        <input type="text" id="penanggung_jawab" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">d. Jumlah Porsi Harian:</span>
+                        <input type="number" id="jumlah_porsi" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">e. Pangan Didistribusikan Ke:</span>
+                        <input type="text" id="distribusi_pangan" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">f. Jumlah Total Penjamah:</span>
+                        <input type="number" id="total_penjamah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block col-span-1 md:col-span-2">
+                        <span class="text-gray-700">g. Jumlah Penjamah yang sudah memiliki sertifikat pelatihan keamanan pangan/kompetensi:</span>
+                        <input type="number" id="penjamah_bersertifikat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">h. Nama Pemeriksa:</span>
+                        <input type="text" id="nama_pemeriksa" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                    <label class="block">
+                        <span class="text-gray-700">i. Tanggal Pemeriksaan:</span>
+                        <input type="date" id="tanggal_pemeriksaan" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </label>
+                </div>
+            </section>
+
+            <!-- Bagian B: Inspeksi Kesehatan Lingkungan -->
+            <section class="mb-8">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">B. Hasil Penilaian Kriteria IKL</h3>
+                <div class="mb-4 p-4 bg-yellow-50 text-yellow-800 rounded-lg">
+                    <p class="font-bold">Keterangan Skor:</p>
+                    <p class="text-sm">3 = Kritis (Kondisi yang menimbulkan risiko kesehatan tinggi dan memerlukan perbaikan segera)</p>
+                    <p class="text-sm">2 = Mayor (Kondisi yang memerlukan perhatian serius)</p>
+                    <p class="text-sm">1 = Minor (Kondisi yang memerlukan perbaikan wajar)</p>
+                    <p class="text-sm">NA = Not Applicable (Tidak Berlaku)</p>
+                </div>
+                
+                <!-- Keterangan Area -->
+                <div class="mb-4 text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-kemenkes-light rounded-lg">
+                    <p>A = Area luar bangunan</p>
+                    <p>B = Area fasilitas karyawan</p>
+                    <p>C = Area penerimaan bahan baku/kemasan</p>
+                    <p>D = Area penyimpanan</p>
+                    <p>E = Area pengolahan pangan</p>
+                    <p>F = Area pengemasan/pemorsian</p>
+                    <p>G = Area loading produk jadi</p>
+                    <p>H = Area pencucian peralatan</p>
+                </div>
+
+
+                <!-- Tabel Inspeksi -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <!-- Header Tabel (Sticky/Fixed) -->
+                        <thead class="bg-kemenkes-blue text-white fixed-header">
+                            <tr>
+                                <th class="w-10 px-2 py-3 text-xs font-medium uppercase tracking-wider">No</th>
+                                <th class="w-64 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Persyaratan / Kriteria</th>
+                                <th colspan="8" class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Hasil Penilaian (A/B/C/D/E/F/G/H)</th>
+                            </tr>
+                            <tr class="bg-blue-800">
+                                <th colspan="2" class="px-4 py-1 text-xs"></th>
+                                <th class="px-2 py-1 text-xs">A</th>
+                                <th class="px-2 py-1 text-xs">B</th>
+                                <th class="px-2 py-1 text-xs">C</th>
+                                <th class="px-2 py-1 text-xs">D</th>
+                                <th class="px-2 py-1 text-xs">E</th>
+                                <th class="px-2 py-1 text-xs">F</th>
+                                <th class="px-2 py-1 text-xs">G</th>
+                                <th class="px-2 py-1 text-xs">H</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inspection-body" class="bg-white divide-y divide-gray-200 text-gray-800">
+                            <!-- Kriteria akan dimasukkan di sini oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Bagian D: Persyaratan Khusus (Diberi nama D agar tidak bertabrakan dengan Fixed Score Bar di C) -->
+            <section class="mt-8">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">D. Persyaratan Khusus</h3>
+                <div id="special-requirements" class="space-y-3">
+                    <!-- Persyaratan khusus akan dimasukkan di sini oleh JavaScript -->
+                </div>
+            </section>
+
+            <!-- Catatan Akhir dan Tanda Tangan -->
+            <section class="mt-8 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">E. Catatan & Tanda Tangan</h3>
+                <label class="block mb-4">
+                    <span class="text-gray-700">Catatan Lain, Kesimpulan dan Saran:</span>
+                    <textarea id="catatan_akhir" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="font-semibold text-gray-700 mb-2">Petugas Pemeriksa</p>
+                        <input type="text" placeholder="(Nama: )" class="block w-full rounded-md border-gray-300 shadow-sm p-2 mb-4">
+                        <div class="border-b border-dashed pt-12"><span class="text-sm text-gray-500">TTD:</span></div>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-700 mb-2">Pengelola/Penanggung Jawab SPPG</p>
+                        <input type="text" placeholder="(Nama: )" class="block w-full rounded-md border-gray-300 shadow-sm p-2 mb-4">
+                        <div class="border-b border-dashed pt-12"><span class="text-sm text-gray-500">TTD:</span></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Bagian C: Total Skor dan Hasil (Fixed/Sticky Bottom) -->
+    <div id="fixed-score-bar" class="p-4 md:p-6 border-t border-kemenkes-blue/20">
+        <div class="max-w-6xl mx-auto">
+            <h3 class="text-base md:text-xl font-extrabold text-kemenkes-blue mb-2">C. Hasil Skor Inspeksi Kesehatan Lingkungan (IKL)</h3>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex-grow w-full md:w-auto">
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-4">
+                        <div id="score-progress-bar" class="h-4 rounded-full transition-all duration-500" style="width: 100%;"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-600 mt-1">
+                        <span>0% (Sangat Buruk)</span>
+                        <span>100% (Sempurna)</span>
+                    </div>
+                </div>
+                
+                <!-- Nilai Skor -->
+                <div class="flex-shrink-0 flex space-x-4 items-baseline">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 font-semibold">Σ Nilai Tidak Terpenuhi:</p>
+                        <p id="total-score-value" class="text-xl font-bold text-red-600 mt-1">0</p>
+                        <p class="text-xs text-gray-500">Max: 507</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-kemenkes-blue">Skor IKL Akhir:</p>
+                        <p id="final-ikl-score" class="text-4xl font-extrabold transition-colors duration-500">100.00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const CRITERIA = [
+            // Bagian A - Area Luar Bangunan (A)
+            { no: 1, text: "Halaman SPPG dalam kondisi bersih, tidak bersemak, dan tidak terdapat tanaman yang menempel langsung pada dinding bangunan pengolahan pangan.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: 2, text: "Area parkir kendaraan jauh dari pintu masuk bangunan pengolahan pangan untuk mencegah kontaminasi asap kendaraan masuk ke ruang pengolahan pangan.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: 3, text: "Bangunan SPPG dilengkapi dengan drainase pada bagian luar dengan kondisi bersih, tidak tersumbat atau meluap, dan memiliki grease trap/penangkap lemak.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: 4, text: "Pintu masuk bahan pangan dan produk jadi dibuat secara terpisah", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: 5, text: "Area bebas banjir, jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang sedang ditangani", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: 6, text: "Area bebas dari polusi (contoh: pencemaran bau/asap/debu), dan jika tidak, maka terdapat pengendalian untuk mencegah kontaminasi terhadap pangan yang ditangani.", areas: { A: 3, B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            
+            // Bagian B - Bangunan & Fasilitas
+            { no: 7, text: "Bangunan / area memiliki ventilasi udara yang cukup.", areas: { A: 1, B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: '8a', text: "Tersedia ruang/area khusus untuk istirahat karyawan yang bersih dan bebas dari vektor atau binatang pembawa penyakit (semua siklus kehidupan) dan tanda-tanda keberadaannya.", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '8b', text: "Tersedia area penyimpanan pakaian dan barang pribadi karyawan (loker) yang bersih dan cukup (pria dan wanita).", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '8c', text: "Tempat penyimpanan (loker) dilengkapi dengan tata tertib penggunaan loker dan tidak digunakan sebagai tempat penyimpanan makanan dan peralatan pengolahan pangan", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '9a', text: "Jumlah toilet cukup sesuai jumlah karyawan dan dibuat terpisah antara laki-laki dan perempuan", areas: { A: 'NA', B: 1, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '9b', text: "Desain toilet kuat dengan permukaan halus dan mudah dibersihkan", areas: { A: 'NA', B: 2, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '9c', text: "Pintu atau ventilasi toilet tidak membuka langsung ke area pengolahan pangan", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            { no: '9d', text: "Toilet dilengkapi dengan sabun, air mengalir, alat pengering tangan, tempat sampah, dan petunjuk mencuci tangan setelah dari toilet.", areas: { A: 'NA', B: 3, C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '10a', text: "Jumlah wastafel/fasilitas cuci tangan cukup sesuai dengan jumlah karyawan dan posisi tempat cuci tangan mudah dijangkau di area dimana banyak kontak tangan penjamah dengan pangan", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            { no: '10b', text: "Desain wastafel/fasilitas cuci tangan kuat, mudah dibersihkan, dan dilengkapi dengan petunjuk cuci tangan", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: '10c', text: "Wastafel/fasilitas cuci tangan dilengkapi dengan air mengalir, sabun cuci tangan, dan pengering tangan (bisa hand dryer atau tissue, tetapi tidak boleh kain serbet)", areas: { A: 'NA', B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            { no: 11, text: "Luas area cukup untuk memudahkan pergerakan bahan atau personil", areas: { A: 1, B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: 12, text: "Struktur bangunan (dinding, plafon, atau atap) tidak ada lubang / retakan yang menjadi potensi masuknya atau bersarangnya vektor atau binatang pembawa penyakit.", areas: { A: 1, B: 2, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            { no: '13a', text: "Lantai bersih dan terawat (tidak rusak atau tidak retak/berlubang)", areas: { A: 'NA', B: 2, C: 2, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: '13b', text: "Tidak terdapat genangan air", areas: { A: 2, B: 1, C: 2, D: 2, E: 2, F: 1, G: 1, H: 2 } },
+            { no: '13c', text: "Pertemuan lantai dan dinding tidak membentuk sudut mati (jika tidak demikian, maka harus dilakukan pembersihan secara rutin dan tidak ditemukan bukti visual kumpulan debu/kotoran)", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: 14, text: "Pintu dalam kondisi bersih dan terawat (tidak berlubang dan dapat menutup sempurna)", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: 15, text: "Pencahayaan cukup terang dengan lampu tercover (jika lampu terbuat dari bahan mudah pecah) dan kondisi cover (jika ada) bersih dan terawat.", areas: { A: 'NA', B: 1, C: 2, D: 2, E: 2, F: 1, G: 2, H: 2 } },
+            { no: '16a', text: "Tinggi langit-langit minimal 2.4 meter dari lantai", areas: { A: 'NA', B: 1, C: 1, D: 1, E: 1, F: 1, G: 1, H: 1 } },
+            { no: '16b', text: "Kondisi langit-langit tertutup, bersih dan terawat (contoh: tidak ada jamur, debu, kotoran, sarang hama atau sawang)", areas: { A: 2, B: 'NA', C: 2, D: 2, E: 2, F: 2, G: 1, H: 2 } },
+            { no: '16c', text: "Tidak ada kondensasi air pada langit-langit", areas: { A: 'NA', B: 2, C: 2, D: 2, E: 2, F: 1, G: 1, H: 1 } },
+            { no: '17a', text: "Tidak ada sampah berserakan di area tempat sampah dan limbah", areas: { A: 1, B: 2, C: 2, D: 2, E: 1, F: 1, G: 2, H: 2 } },
+            { no: '17b', text: "Terdapat tempat sampah dalam kondisi tertutup, sampah tidak mengunung (frekuensi pembuangan minimal 1x24 jam) dan kondisi bersih", areas: { A: 1, B: 2, C: 1, D: 2, E: 2, F: 2, G: 1, H: 2 } },
+            
+            // Bagian C - Vektor & Hama
+            { no: '18a', text: "Bebas vektor atau binatang pembawa penyakit (semua tingkat siklus kehidupannya) dan tanda-tanda keberadaannya (contoh: kotoran atau bagian tubuh hama)", areas: { A: 1, B: 3, C: 2, D: 3, E: 1, F: 2, G: 3, H: 3 } },
+            { no: '18b', text: "Terdapat jebakan hama yang ditempatkan pada posisi yang sesuai dan dalam kondisi terawat (tidak rusak, tidak berjamur, dan bersih).", areas: { A: 2, B: 1, C: 2, D: 2, E: 1, F: 2, G: 2, H: 2 } },
+            { no: '18c', text: "Pengendalian tidak mengunakan bahan kimia (pestisida) di area dalam bangunan pengolahan pangan", areas: { A: 'NA', B: 3, C: 3, D: 3, E: 3, F: 3, G: 3, H: 1 } },
+            { no: '18d', text: "JIKA ventilasi berupa bukaan (contoh: jendela/exhaust) yang terbuka keluar, maka terdapat kasa/tirai/plastik curtain anti serangga untuk mencegah masuknya vektor atau binatang pembawa penyakit. Kasa/tirai/plastik curtain dalam kondisi bersih dan terawat.", areas: { A: 1, B: 2, C: 2, D: 1, E: 2, F: 2, G: 2, H: 2 } },
+
+            // Bagian D - Penyimpanan
+            { no: '19a', text: "Penyimpanan bahan baku, ingredien dan kemasan tidak langsung menyentuh lantai (contoh: menggunakan palet) dengan jarak minimal 15 cm dari lantai, 5 cm dari dinding, dan 60 cm dari langit-langit", areas: { A: 'NA', B: 'NA', C: 1, D: 1, E: 1, F: 1, G: 1, H: 'NA' } },
+            { no: '19b', text: "Kemasan bekas bahan baku mentah tidak disimpan di area yang terdapat pangan matang", areas: { A: 2, B: 'NA', C: 'NA', D: 'NA', E: 2, F: 2, G: 'NA', H: 'NA' } },
+            { no: '19c', text: "Penyimpanan bahan mentah tidak menyatu dengan pangan matang, dan penyimpanan bahan pangan tidak menyatu dengan penyimpanan bahan kimia.", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            { no: '19d', text: "Bahan baku pangan dan ingredient dalam kondisi baik dan tidak busuk atau berlendir", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            { no: '19e', text: "Khusus untuk bahan baku olahan terkemas dalam kondisi baik (tidak kedaluwarsa, kemasan utuh/tidak bocor, dan memiliki izin edar dari instansi terkait)", areas: { A: 'NA', B: 3, C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 'NA' } },
+            { no: '19f', text: "Khusus untuk chiller atau freezer, suhu penyimpanan harus sesuai (chiller 0-4°C dan freezer ≤(-15°C))", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 2, H: 'NA' } },
+            { no: '19g', text: "Bahan kimia (contoh untuk cuci tangan/sanitasi tangan, cuci peralatan, pembersihan lantai) disimpan pada area khusus dengan akses terbatas dan memiliki identitas yang jelas. Kuantitas bahan kimia yang digunakan di setiap area hanya untuk penggunaan harian", areas: { A: 2, B: 2, C: 2, D: 2, E: 1, F: 1, G: 1, H: 2 } },
+            { no: '19h', text: "Tidak ada pangan matang yang disimpan sementara di area luar bangunan pengolahan dalam kondisi terbuka.", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 3, H: 'NA' } },
+            { no: '19i', text: "Penyimpanan kemasan yang kontak pangan matang dalam kondisi bersih", areas: { A: 'NA', B: 'NA', C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            
+            // Bagian E - Personil
+            { no: '20a', text: "Personil sehat/tidak menunjukkan gejala penyakit", areas: { A: 'NA', B: 3, C: 'NA', D: 3, E: 3, F: 1, G: 3, H: 3 } },
+            { no: '20b', text: "Personil menggunakan APD (celemek, masker, hairnet/penutup rambut) dengan lengkap dan benar", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            { no: '20c', text: "Personil menggunakan pakaian kerja khusus selama berada di area pengolahan pangan", areas: { A: 'NA', B: 'NA', C: 2, D: 'NA', E: 2, F: 2, G: 2, H: 2 } },
+            { no: '20d', text: "Personil menerapkan personil higiene dengan benar (contoh: tidak memakai aksesoris/perhiasan, rutin mencuci tangan, tidak batuk/bersin langsung di atas pangan, tidak merokok/makan/minum saat mengolah pangan, tidak mengaruk atau menyentuh bagian badan dan kemudian menyentuh pangan)", areas: { A: 'NA', B: 3, C: 'NA', D: 'NA', E: 3, F: 3, G: 3, H: 2 } },
+            { no: '20e', text: "Jika personil memiliki luka, maka luka harus ditutup dengan perban/sejenisnya dan ditutup penutup yang tahan air dan dalam kondisi bersih", areas: { A: 'NA', B: 'NA', C: 'NA', D: 3, E: 3, F: 3, G: 3, H: 3 } },
+            { no: '20f', text: "Personil yang bekerja di area ini memiliki pemahaman mengenai prinsip umum higiene personil dan keamanan pangan", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 2, F: 2, G: 2, H: 2 } },
+            
+            // Bagian F - Peralatan
+            { no: '21a', text: "Peralatan atau kemasan yang kontak langsung dengan pangan dibuat dari bahan tara pangan, tidak terbuat dari kayu, dan kondisi terawat (tidak rusak, tidak berkarat, dan bersih)", areas: { A: 'NA', B: 'NA', C: 3, D: 1, E: 2, F: 3, G: 3, H: 'NA' } },
+            { no: '21b', text: "Peralatan dalam kondisi terawat (tidak rusak/pecah, tidak berkarat, dan bersih)", areas: { A: 'NA', B: 'NA', C: 3, D: 3, E: 2, F: 1, G: 3, H: 1 } },
+            { no: '21c', text: "Khusus untuk kemasan pangan matang dalam kondisi bersih dan terawat (tidak rusak/pecah, tidak berkarat, dan bersih (tidak terdapat sisa bahan kimia pencucian atau sisa makanan), serta dapat ditutup sempurna)", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 3, G: 'NA', H: 'NA' } },
+
+            // Bagian G - Proses Pengolahan Pangan
+            { no: '22a', text: "Jika terdapat proses thawing/pencairan bahan pangan, maka dilakukan dengan benar.", areas: { A: 'NA', B: 'NA', C: 'NA', D: 2, E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '22b', text: "Pangan dimasak sampai matang sempurna dengan penampakan visual normal (tidak ada benda asing) dan bau normal", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 3, F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '22c', text: "Suhu inti pangan yang dimasak minimal 75°C (lakukan sampling pada saat inspeksi dan ukur menggunakan termometer)", areas: { A: 'NA', B: 'NA', C: 'NA', D: 'NA', E: 3, F: 'NA', G: 'NA', H: 'NA' } },
+            
+            // Bagian H - Proses Pengangkutan Pangan Matang
+            { no: '23a', text: "Kondisi kendaraan pengangkutan pangan matang bersih, terawat dan bebas dari vektor atau binatang pembawa penyakit.", areas: { A: 2, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+            { no: '23b', text: "Pangan yang diangkut dalam kondisi kemasan tertutup sempurna dan pengangkutan sesuai untuk menjaga suhu panas atau dingin (sesuai jenis pangan)", areas: { A: 3, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
+        ];
+
+        const SPECIAL_REQUIREMENTS = [
+            { no: 1, text: "Pengelola/pemilik SPPG memiliki sertifikat pelatihan keamanan pangan siap saji" },
+            { no: 2, text: "Penjamah pangan yang bekerja di SPPG sudah memiliki sertifikat pelatihan keamanan pangan siap saji minimal 50%" },
+            { no: 3, text: "Penjamah dilakukan pemeriksaan kesehatan secara berkala minimal 1 (satu) kali setahun dan dapat dibuktikan dengan rekaman pemeriksaan kesehatan dari unit pelayanan kesehatan setempat." },
+            { no: 4, text: "Tersedia hasil analisa pengujian air dengan hasil yang sesuai dengan persyaratan air minum yang berlaku dan rekaman hasil analisa laboratorium dapat ditunjukkan (1 tahun terakhir)" },
+            { no: 5, text: "Tersedia laporan hasil pemeriksaan laboratorium sampel pangan (minimal 1 kali dalam 1 tahun terakhir) sesuai dengan Standar Baku Mutu Kesehatan Lingkungan (SBMKL) yang berlaku saat ini dan hasil analisa sesuai atau masuk persyaratan yang berlaku." },
+            { no: 6, text: "Tersedia dokumentasi pengawasan internal secara berkala (minimal dilakukan 6 bulan sekali) menggunakan formulir IKL dan dibuktikan dengan rekaman pengawasan internal (IKL) yang sudah terisi." },
+            { no: 7, text: "SPPG sudah menerapkan penyimpanan sampel arsip (bank sample) untuk pangan yang diproduksi harian selama 2 x 24 jam pada suhu penyimpanan chiller/kulkas." },
+            { no: 8, text: "Tersedia perlengkapan P3K, obat-obatan, dan APAR yang tidak kedaluwarsa dan mudah dijangkau" },
+            // SOPs
+            { no: '9.a.1', text: "SPPG memiliki SOP sanitasi fasilitas dan ruangan dan sudah disosialisasikan" },
+            { no: '9.a.2', text: "SPPG memiliki SOP sanitasi peralatan dan sudah disosialisasikan" },
+            { no: '9.a.3', text: "SPPG memiliki SOP persiapan bahan pangan dan sudah disosialisasikan" },
+            { no: '9.a.4', text: "SPPG memiliki SOP pengolahan dan sudah disosialisasikan" },
+            { no: '9.a.5', text: "SPPG memiliki SOP penyimpanan makanan dan sampel makanan dan sudah disosialisasikan" },
+            { no: '9.a.6', text: "SPPG memiliki SOP keselamatan kerja dan sudah disosialisasikan" },
+            { no: '9.a.7', text: "SPPG memiliki SOP higiene dan pemeriksaan kesehatan personil dan sudah disosialisasikan" },
+            { no: '9.a.8', text: "SPPG memiliki SOP pemeliharaan peralatan dan bangunan dan sudah disosialisasikan" },
+            { no: '9.a.9', text: "SPPG memiliki SOP pengendalian serangga, hewan pengerat, dan hewan peliharaan dan sudah disosialisasikan" },
+            { no: '9.a.10', text: "SPPG memiliki SOP tindakan apabila terjadi keracunan makanan dan sudah disosialisasikan" },
+            { no: '9.b', text: "Laporan hasil kalibrasi alat ukur seperti termometer (1 tahun terakhir) tersedia" },
+            { no: '9.c', text: "Rekaman monitoring suhu chiller dan freezer tersedia" },
+            { no: '9.d', text: "Rekaman pembersihan fasilitas (contoh: wastafel, toilet, area kerja) tersedia" },
+        ];
+        
+        const MAX_TOTAL_SCORE = 507; // Nilai maksimum total bobot persyaratan
+
+        /**
+         * Menghitung dan memperbarui skor IKL secara real-time.
+         */
+        function calculateScore() {
+            const scores = document.querySelectorAll('.score-input:checked');
+            let totalScore = 0;
+
+            scores.forEach(input => {
+                const value = input.value;
+                // Pastikan untuk hanya menambahkan nilai numerik (bukan 'NA' yang diwakili '0' di value)
+                if (value !== 'NA' && !isNaN(parseInt(value, 10))) {
+                    totalScore += parseInt(value, 10);
+                }
+            });
+
+            // Hitung Skor IKL
+            // Rumus: 100 - ((Total Nilai Persyaratan yang Tidak Terpenuhi / 507) x 100)
+            const iklScore = 100 - ((totalScore / MAX_TOTAL_SCORE) * 100);
+            const iklProgress = Math.min(100, Math.max(0, iklScore)); // Pastikan antara 0 dan 100
+
+            // Tentukan warna berdasarkan skor
+            const scoreColor = iklScore >= 80 ? 'var(--tw-colors-score-green)' : 'var(--tw-colors-score-red)';
+            const progressColor = iklScore >= 80 ? 'bg-score-green' : 'bg-score-red';
+            
+            // Perbarui tampilan total skor
+            document.getElementById('total-score-value').textContent = totalScore;
+            
+            // Perbarui tampilan skor IKL
+            const finalScoreElement = document.getElementById('final-ikl-score');
+            finalScoreElement.textContent = iklScore.toFixed(2);
+            finalScoreElement.style.color = scoreColor; // Terapkan warna teks
+            
+            // Perbarui progress bar
+            const progressBar = document.getElementById('score-progress-bar');
+            progressBar.style.width = `${iklProgress}%`;
+            
+            // Hapus kelas warna sebelumnya dan tambahkan yang baru
+            progressBar.classList.remove('bg-score-green', 'bg-score-red');
+            progressBar.classList.add(progressColor);
+        }
+
+        /**
+         * Membuat baris kriteria untuk tabel inspeksi.
+         */
+        function renderCriteriaTable() {
+            const body = document.getElementById('inspection-body');
+            body.innerHTML = ''; // Kosongkan tabel
+            
+            CRITERIA.forEach((crit, index) => {
+                const row = document.createElement('tr');
+                row.className = 'criteria-row border-b hover:bg-gray-50 transition-colors';
+
+                // Kolom No dan Kriteria
+                row.innerHTML += `
+                    <td class="px-2 py-3 whitespace-nowrap text-center text-sm font-medium">${crit.no}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${crit.text}</td>
+                `;
+
+                const areas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                areas.forEach(area => {
+                    const score = crit.areas[area];
+                    const inputName = `crit-${crit.no}-${area}`;
+                    
+                    let cellContent;
+                    if (score === 'NA') {
+                        cellContent = `<span class="text-xs text-gray-400 font-semibold">NA</span>`;
+                    } else {
+                        // Jika skor adalah angka (1, 2, atau 3)
+                        // Atur default ke NA (value=0)
+                        const radioButtons = [3, 2, 1, 'NA'].map(val => {
+                            const numericValue = val === 'NA' ? 0 : val;
+                            return `
+                                <input type="radio" id="${inputName}-${val}" name="${inputName}" value="${numericValue}" class="score-input hidden" ${val === 'NA' ? 'checked' : ''}>
+                                <label for="${inputName}-${val}" class="score-label">${val}</label>
+                            `;
+                        }).join('');
+
+                        cellContent = `
+                            <div class="flex flex-col space-y-1">
+                                ${radioButtons}
+                            </div>
+                        `;
+                    }
+
+                    const cell = document.createElement('td');
+                    cell.className = 'px-1 py-1 whitespace-nowrap text-center w-12';
+                    cell.innerHTML = cellContent;
+                    row.appendChild(cell);
+                });
+
+                body.appendChild(row);
+            });
+            
+            // Tambahkan event listener ke semua input radio
+            document.querySelectorAll('.score-input').forEach(input => {
+                input.addEventListener('change', calculateScore);
+            });
+
+            // Lakukan perhitungan awal
+            calculateScore();
+        }
+        
+        /**
+         * Membuat baris persyaratan khusus.
+         */
+        function renderSpecialRequirements() {
+            const container = document.getElementById('special-requirements');
+            container.innerHTML = '';
+
+            SPECIAL_REQUIREMENTS.forEach((req) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-start p-3 bg-white rounded-lg border';
+                
+                div.innerHTML = `
+                    <div class="flex-shrink-0 w-8 text-sm font-semibold text-gray-500">${req.no}</div>
+                    <div class="flex-grow text-sm text-gray-800">${req.text}</div>
+                    <div class="flex-shrink-0 flex space-x-4 ml-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="req-${req.no}" value="Ya" class="form-radio text-kemenkes-blue h-5 w-5">
+                            <span class="ml-2 text-sm text-gray-700">Ya</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="req-${req.no}" value="Tidak" class="form-radio text-red-600 h-5 w-5">
+                            <span class="ml-2 text-sm text-gray-700">Tidak</span>
+                        </label>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        /**
+         * Mengambil lokasi pengguna saat ini (lintang dan bujur)
+         */
+        function getLocation() {
+            const latInput = document.getElementById('latitude');
+            const lonInput = document.getElementById('longitude');
+            const btn = document.getElementById('get-location-btn');
+            
+            const originalLatPlaceholder = latInput.placeholder;
+            const originalLonPlaceholder = lonInput.placeholder;
+
+            latInput.value = 'Mengambil...';
+            lonInput.value = 'Mengambil...';
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat Lokasi...';
+
+            if (navigator.geolocation) {
+                // Menggunakan timeout yang lebih panjang untuk environment iframe/browser yang lambat, 
+                // dan mengaktifkan high accuracy untuk hasil yang lebih presisi (mungkin lambat).
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 15000, // 15 detik
+                    maximumAge: 0 
+                };
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        latInput.value = position.coords.latitude.toFixed(6);
+                        lonInput.value = position.coords.longitude.toFixed(6);
+                        btn.disabled = false;
+                        btn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243m-1.414 6.364l7.071-7.071m-7.071 7.071l7.071-7.071m-4.243-4.243l4.243 4.243m-4.243-4.243l-4.243 4.243"></path></svg> Dapatkan Lokasi`;
+                    },
+                    (error) => {
+                        console.error("Error getting location: ", error);
+                        let errorMessage;
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = "Akses lokasi ditolak oleh pengguna.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = "Informasi lokasi tidak tersedia/error jaringan.";
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = "Waktu tunggu (timeout) habis. Coba lagi.";
+                                break;
+                            default:
+                                errorMessage = `Error tidak diketahui (Kode: ${error.code}).`;
+                                break;
+                        }
+                        
+                        // Set nilai input kembali ke placeholder dan tampilkan pesan error di konsol
+                        latInput.value = '';
+                        lonInput.value = '';
+                        latInput.placeholder = `Gagal: ${errorMessage}`;
+                        lonInput.placeholder = '—';
+                        
+                        btn.disabled = false;
+                        btn.textContent = 'Gagal Mendapatkan Lokasi';
+                        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        btn.classList.add('bg-red-500', 'hover:bg-red-600');
+                        
+                        console.log(`[Peringatan Geolokasi] ${errorMessage}. Pastikan layanan lokasi diaktifkan.`);
+                        
+                        // Kembalikan tombol ke warna hijau setelah beberapa saat
+                        setTimeout(() => {
+                            latInput.placeholder = originalLatPlaceholder;
+                            lonInput.placeholder = originalLonPlaceholder;
+                            btn.textContent = 'Dapatkan Lokasi';
+                            btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                        }, 5000);
+                    },
+                    options 
+                );
+            } else {
+                latInput.value = 'N/A';
+                lonInput.value = 'N/A';
+                btn.disabled = false;
+                btn.textContent = 'Geolokasi Tidak Didukung';
+                console.log('Peringatan: Browser Anda tidak mendukung Geolocation API.');
+            }
+        }
+
+
+        // Jalankan fungsi saat DOM selesai dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCriteriaTable();
+            renderSpecialRequirements();
+            
+            // Tambahkan listener untuk tombol lokasi
+            document.getElementById('get-location-btn').addEventListener('click', getLocation);
+            
+            // Tambahkan readonly pada input lat/lon agar pengguna tahu ini diisi otomatis
+            document.getElementById('latitude').setAttribute('readonly', 'true');
+            document.getElementById('longitude').setAttribute('readonly', 'true');
+
+
+            // Tambahkan listener untuk input umum (opsional, untuk memastikan data terisi)
+            document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]').forEach(input => {
+                input.addEventListener('input', () => {
+                    // Logika validasi data umum bisa ditambahkan di sini
+                });
+            });
+        });
+    </script>
+</body>
+</html>
