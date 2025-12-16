@@ -7,6 +7,9 @@
     <!-- Memuat Tailwind CSS dari CDN untuk styling yang modern dan responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Memuat Pustaka html2pdf.js (untuk ekspor PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <!-- Konfigurasi Tailwind untuk font Inter dan warna kustom -->
     <script>
         tailwind.config = {
@@ -70,6 +73,37 @@
             backdrop-filter: blur(5px);
             background-color: rgba(255, 255, 255, 0.95);
         }
+
+        /* Kelas khusus untuk konten yang akan dicetak (menyembunyikan tombol, dll) */
+        @media print {
+            #fixed-score-bar, #export-btn-container {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .fixed-header {
+                position: static !important;
+            }
+
+            /* HINDARI PAGE BREAK DI TENGAH BARIS/KRITERIA/BOX */
+            .criteria-row, 
+            #special-requirements > div,
+            section {
+                page-break-inside: avoid !important;
+            }
+            
+            /* Pastikan header tabel diulang jika terpotong, meskipun html2pdf kurang mendukungnya secara native */
+            thead {
+                display: table-header-group;
+            }
+
+            /* Untuk Tanda Tangan agar tidak terpotong */
+            .grid.grid-cols-1.md\:grid-cols-2.gap-6 {
+                page-break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -77,11 +111,14 @@
         
         <!-- Header Aplikasi -->
         <header class="bg-kemenkes-blue p-6 text-white text-center">
-            <h1 class="text-3xl font-extrabold mb-1">INSTRUMEN INSPEKSI KESEHATAN LINGKUNGAN (IKL)</h1>
+            <h1 class="3xl font-extrabold mb-1">INSTRUMEN INSPEKSI KESEHATAN LINGKUNGAN (IKL)</h1>
             <h2 class="text-xl font-medium">SATUAN PELAYANAN PEMENUHAN GIZI (SPPG)</h2>
         </header>
 
-        <main class="p-6 md:p-8">
+        <!-- Container untuk Tombol Ekspor (KOSONGKAN karena dipindah ke fixed bar) -->
+        <div id="export-btn-container" class="hidden"></div> 
+
+        <main class="p-6 md:p-8" id="form-content">
             <!-- Bagian A: Data Umum SPPG -->
             <section class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">A. Data Umum SPPG</h3>
@@ -128,7 +165,7 @@
                         <input type="number" id="total_penjamah" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
                     </label>
                     <label class="block col-span-1 md:col-span-2">
-                        <span class="text-gray-700">g. Jumlah Penjamah yang sudah memiliki sertifikat pelatihan keamanan pangan/kompetensi:</span>
+                        <span class="text-gray-700">g. Jumlah penjamah pangan terlatih:</span>
                         <input type="number" id="penjamah_bersertifikat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
                     </label>
                     <label class="block">
@@ -229,31 +266,36 @@
 
     <!-- Bagian C: Total Skor dan Hasil (Fixed/Sticky Bottom) -->
     <div id="fixed-score-bar" class="p-4 md:p-6 border-t border-kemenkes-blue/20">
-        <div class="max-w-6xl mx-auto">
-            <h3 class="text-base md:text-xl font-extrabold text-kemenkes-blue mb-2">C. Hasil Skor Inspeksi Kesehatan Lingkungan (IKL)</h3>
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex-grow w-full md:w-auto">
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-4">
-                        <div id="score-progress-bar" class="h-4 rounded-full transition-all duration-500" style="width: 100%;"></div>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-600 mt-1">
-                        <span>0% (Sangat Buruk)</span>
-                        <span>100% (Sempurna)</span>
-                    </div>
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Tombol Ekspor PDF (DIPINDAH KE SINI) -->
+            <button id="export-pdf-btn" class="w-full md:w-auto flex-shrink-0 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg order-3 md:order-1">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Ekspor Hasil ke PDF
+            </button>
+
+            <div class="flex-grow w-full md:w-auto order-1 md:order-2">
+                <h3 class="text-base md:text-xl font-extrabold text-kemenkes-blue mb-2">C. Hasil Skor Inspeksi Kesehatan Lingkungan (IKL)</h3>
+                <!-- Progress Bar Container -->
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="score-progress-bar" class="h-4 rounded-full transition-all duration-500" style="width: 100%;"></div>
                 </div>
-                
-                <!-- Nilai Skor -->
-                <div class="flex-shrink-0 flex space-x-4 items-baseline">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-600 font-semibold">Σ Nilai Tidak Terpenuhi:</p>
-                        <p id="total-score-value" class="text-xl font-bold text-red-600 mt-1">0</p>
-                        <p class="text-xs text-gray-500">Max: 507</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-sm font-semibold text-kemenkes-blue">Skor IKL Akhir:</p>
-                        <p id="final-ikl-score" class="text-4xl font-extrabold transition-colors duration-500">100.00</p>
-                    </div>
+                <div class="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>0% (Sangat Buruk)</span>
+                    <span>100% (Sempurna)</span>
+                </div>
+            </div>
+            
+            <!-- Nilai Skor -->
+            <div class="flex-shrink-0 flex space-x-4 items-baseline order-2 md:order-3">
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 font-semibold">Σ Nilai Tidak Terpenuhi:</p>
+                    <p id="total-score-value" class="text-xl font-bold text-red-600 mt-1">0</p>
+                    <p class="text-xs text-gray-500">Max: 507</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm font-semibold text-kemenkes-blue">Skor IKL Akhir:</p>
+                    <p id="final-ikl-score" class="text-4xl font-extrabold transition-colors duration-500">100.00</p>
                 </div>
             </div>
         </div>
@@ -261,6 +303,8 @@
 
 
     <script>
+        // --- DATA KONSTAN FORMULIR LENGKAP ---
+
         const CRITERIA = [
             // Definisi Kriteria Inspeksi
             { no: 1, text: "Halaman SPPG dalam kondisi bersih, tidak bersemak, dan tidak terdapat tanaman yang menempel langsung pada dinding bangunan pengolahan pangan.", areas: { A: 1, B: 'NA', C: 'NA', D: 'NA', E: 'NA', F: 'NA', G: 'NA', H: 'NA' } },
@@ -349,6 +393,129 @@
         const MAX_TOTAL_SCORE = 507; // Nilai maksimum total bobot persyaratan
         const STORAGE_KEY = 'iklSppgFormData';
 
+        // --- FUNGSI UTAMA ---
+
+        /**
+         * Mengubah formulir HTML menjadi PDF menggunakan html2pdf.js.
+         */
+        function exportToPDF() {
+            const element = document.getElementById('form-content');
+            
+            // 1. Tentukan nama file
+            const namaSppg = document.getElementById('nama_sppg').value || 'SPPG_Tidak_Bernama';
+            const tanggal = document.getElementById('tanggal_pemeriksaan').value || new Date().toISOString().slice(0, 10);
+            const filename = `IKL_${namaSppg.replace(/\s/g, '_')}_${tanggal}.pdf`;
+            
+            // 2. Konfigurasi html2pdf
+            const opt = {
+                margin: 0.5,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Cloning elemen untuk menghilangkan fitur interaktif 
+            const clonedElement = element.cloneNode(true);
+            
+            // Fungsi helper untuk mendapatkan label yang terpilih dari radio group
+            const getSelectedLabelText = (inputName, clonedDoc) => {
+                const checkedInput = clonedDoc.querySelector(`input[name="${inputName}"]:checked`);
+                if (checkedInput) {
+                    const label = clonedDoc.querySelector(`label[for="${checkedInput.id}"]`);
+                    return label ? label.textContent.trim() : checkedInput.value;
+                }
+                return '—';
+            };
+
+            // Mengganti semua input dan textarea dengan nilai teks statisnya
+            clonedElement.querySelectorAll('input, textarea').forEach(input => {
+                if (input.type === 'radio') {
+                    return; 
+                }
+                
+                const span = document.createElement('span');
+                span.className = 'font-normal text-sm text-gray-800 block border-b border-gray-300 px-1';
+                span.textContent = input.value || '—';
+                
+                input.parentNode.replaceChild(span, input);
+            });
+
+            // Mengganti grup radio dengan nilai teks statis untuk Kriteria Inspeksi
+            clonedElement.querySelectorAll('#inspection-body tr').forEach(row => {
+                const cells = row.querySelectorAll('td:nth-child(n+3)');
+                cells.forEach(cell => {
+                    const inputName = cell.querySelector('input[type="radio"]') ? cell.querySelector('input[type="radio"]').name : null;
+                    if (inputName) {
+                        const selectedValue = getSelectedLabelText(inputName, clonedElement);
+                        const staticSpan = document.createElement('span');
+                        staticSpan.textContent = selectedValue;
+                        staticSpan.className = 'text-sm font-bold block py-1';
+                        
+                        const radioDiv = cell.querySelector('div.flex.flex-col');
+                        if(radioDiv) {
+                            cell.removeChild(radioDiv);
+                        }
+                        
+                        cell.appendChild(staticSpan);
+                    }
+                });
+            });
+
+            // Mengganti grup radio dengan nilai teks statis untuk Persyaratan Khusus
+            clonedElement.querySelectorAll('#special-requirements .flex').forEach(div => {
+                const inputName = div.querySelector('input[type="radio"]') ? div.querySelector('input[type="radio"]').name : null;
+                if (inputName) {
+                    const resultDiv = div.querySelector('.flex-shrink-0.flex.space-x-4');
+                    if (resultDiv) {
+                        const selectedValue = getSelectedLabelText(inputName, clonedElement);
+                        const staticSpan = document.createElement('span');
+                        staticSpan.textContent = selectedValue;
+                        staticSpan.className = 'text-sm font-bold';
+                        
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(staticSpan);
+                    }
+                }
+            });
+
+            // Menampilkan skor akhir di dalam konten PDF
+            const finalScoreElement = document.getElementById('final-ikl-score');
+            const scoreValue = finalScoreElement.textContent;
+            const scoreColor = finalScoreElement.style.color;
+            
+            const scoreResultDiv = document.createElement('div');
+            scoreResultDiv.className = 'mt-6 p-4 rounded-lg border-2 border-dashed bg-gray-50';
+            scoreResultDiv.style.borderColor = scoreColor;
+            scoreResultDiv.innerHTML = `
+                <h4 class="text-xl font-bold text-gray-700">Hasil Akhir Inspeksi</h4>
+                <p class="text-lg font-semibold">Skor IKL Akhir: 
+                    <span style="color: ${scoreColor}; font-weight: bold; font-size: 1.5em;">${scoreValue}</span>
+                </p>
+            `;
+            clonedElement.appendChild(scoreResultDiv);
+
+
+            // Mulai proses ekspor (dengan spinner)
+            const exportBtn = document.getElementById('export-pdf-btn');
+            exportBtn.disabled = true;
+            const originalHtml = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<svg class="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mempersiapkan & Mengunduh...';
+
+
+            html2pdf().set(opt).from(clonedElement).save().then(() => {
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = originalHtml;
+            }).catch(error => {
+                console.error("Ekspor PDF Gagal:", error);
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = originalHtml;
+                window.alert("Gagal membuat atau mengunduh PDF. Silakan coba lagi.");
+            });
+        }
+
+        // --- FUNGSI UTILITY (Simpan/Muat/Hitung/Render) ---
+
         /**
          * Menyimpan semua data formulir ke localStorage.
          */
@@ -382,7 +549,6 @@
 
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                // console.log("Form data saved to local storage.");
             } catch (e) {
                 console.error("Gagal menyimpan data ke local storage: ", e);
             }
@@ -399,13 +565,13 @@
                 const data = JSON.parse(savedData);
 
                 // 1. Muat Data Umum & Catatan
-                for (const id in data) {
+                const inputIds = ['nama_sppg', 'alamat_sppg', 'latitude', 'longitude', 'penanggung_jawab', 'jumlah_porsi', 'distribusi_pangan', 'total_penjamah', 'penjamah_bersertifikat', 'nama_pemeriksa', 'tanggal_pemeriksaan', 'catatan_akhir'];
+                inputIds.forEach(id => {
                     const input = document.getElementById(id);
-                    // Pastikan id bukan bagian dari skor radio groups
-                    if (input && typeof data[id] === 'string' && !id.startsWith('crit-') && !id.startsWith('req-')) {
+                    if (input && typeof data[id] === 'string') {
                         input.value = data[id];
                     }
-                }
+                });
                 
                 // 2. Muat Skor Inspeksi
                 if (data.inspectionScores) {
@@ -417,7 +583,15 @@
                             input.checked = true;
                         }
                     }
+                } else {
+                    // Jika tidak ada data tersimpan, pastikan NA tercentang
+                    document.querySelectorAll('.score-input').forEach(input => {
+                        if (input.value === '0') { // '0' adalah nilai untuk 'NA'
+                            input.checked = true;
+                        }
+                    });
                 }
+
 
                 // 3. Muat Persyaratan Khusus
                 if (data.specialRequirements) {
@@ -431,7 +605,6 @@
                     }
                 }
                 
-                // console.log("Form data loaded from local storage.");
                 return true;
             } catch (e) {
                 console.error("Gagal memuat data formulir: ", e);
@@ -504,9 +677,10 @@
                     } else {
                         const radioButtons = [3, 2, 1, 'NA'].map(val => {
                             const numericValue = val === 'NA' ? 0 : val;
-                            // Default checked harus di set di loadFormData, bukan di render
+                            // Pre-select NA (value=0) jika tidak ada data tersimpan
+                            const defaultChecked = val === 'NA' ? 'checked' : ''; 
                             return `
-                                <input type="radio" id="${inputName}-${val}" name="${inputName}" value="${numericValue}" class="score-input hidden">
+                                <input type="radio" id="${inputName}-${val}" name="${inputName}" value="${numericValue}" class="score-input hidden" ${defaultChecked}>
                                 <label for="${inputName}-${val}" class="score-label">${val}</label>
                             `;
                         }).join('');
@@ -541,6 +715,7 @@
 
             SPECIAL_REQUIREMENTS.forEach((req) => {
                 const div = document.createElement('div');
+                // Tambahkan kelas print:page-break-inside-avoid pada div persyaratan khusus
                 div.className = 'flex items-start p-3 bg-white rounded-lg border';
                 
                 div.innerHTML = `
@@ -647,14 +822,17 @@
         }
 
 
+        // --- INISIALISASI ---
+
         // Jalankan fungsi saat DOM selesai dimuat
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Render semua kriteria dan persyaratan (dengan default yang belum terpilih)
+            // 1. Render semua kriteria dan persyaratan
             renderCriteriaTable();
             renderSpecialRequirements();
 
             // 2. Muat data dari localStorage (menimpa default)
-            loadFormData();
+            // Penting: loadFormData akan menangani default NA jika tidak ada data tersimpan.
+            loadFormData(); 
 
             // 3. Hitung skor berdasarkan data yang dimuat atau default
             calculateScore();
@@ -668,10 +846,13 @@
                 }
             });
             
-            // Tambahkan listener untuk tombol lokasi
+            // 5. Tambahkan listener untuk tombol lokasi
             document.getElementById('get-location-btn').addEventListener('click', getLocation);
             
-            // Set input lat/lon sebagai readonly
+            // 6. Tambahkan listener untuk tombol ekspor PDF
+            document.getElementById('export-pdf-btn').addEventListener('click', exportToPDF);
+
+            // 7. Set input lat/lon sebagai readonly
             document.getElementById('latitude').setAttribute('readonly', 'true');
             document.getElementById('longitude').setAttribute('readonly', 'true');
         });
